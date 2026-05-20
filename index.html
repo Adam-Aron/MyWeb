@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的秘密基地</title>
+    <style>
+        /* 极简居中卡片样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 400px;
+            width: 85%;
+        }
+        input {
+            width: 80%;
+            padding: 12px;
+            margin: 20px 0 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+        button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #0051cb; }
+        #main-content { display: none; } /* 默认隐藏真实内容 */
+    </style>
+</head>
+<body>
+
+    <!-- 1. 密码锁界面 -->
+    <div id="login-card" class="card">
+        <h2>🔒 专属私密空间</h2>
+        <p style="color: #666; font-size: 14px;">输入我们约定好的暗号才能进入哦</p>
+        <input type="password" id="password-input" placeholder="输入密码...">
+        <br>
+        <button onclick="checkPassword()">解锁进入</button>
+        <p id="error-msg" style="color: #ff3b30; font-size: 14px; display: none; margin-top: 10px;">暗号不对，再想想？</p>
+    </div>
+
+    <!-- 2. 网页真实内容（解锁后显示） -->
+    <div id="main-content" class="card">
+        <h2>🎉 欢迎来到秘密基地！</h2>
+        <p style="color: #444; line-height: 1.6;">这里目前只有你和你身边的人能看到。你可以在这里添加文字、图片，或者后续开发更复杂的功能。</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <button onclick="logout()" style="background-color: #8e8e93;">退出登录</button>
+    </div>
+
+    <script>
+        // 在这里修改你的网页密码（提示：前端明文密码属于“防君子不防小人”，但对付小圈子绰绰有余）
+        const MY_SECRET_PASSWORD = "open_sesame_2026"; 
+
+        // 页面一加载，先检查之前有没有成功登录过
+        window.onload = function() {
+            if (sessionStorage.getItem("isLoggedIn") === "true") {
+                showContent();
+            }
+        }
+
+        // 验证密码
+        function checkPassword() {
+            const input = document.getElementById("password-input").value;
+            const errorMsg = document.getElementById("error-msg");
+
+            if (input === MY_SECRET_PASSWORD) {
+                sessionStorage.setItem("isLoggedIn", "true"); // 记录登录状态
+                showContent();
+            } else {
+                errorMsg.style.display = "block"; // 显示错误提示
+            }
+        }
+
+        // 切换显示状态
+        function showContent() {
+            document.getElementById("login-card").style.display = "none";
+            document.getElementById("main-content").style.display = "block";
+        }
+
+        // 退出登录
+        function logout() {
+            sessionStorage.removeItem("isLoggedIn");
+            window.location.reload(); // 刷新页面重新上锁
+        }
+    </script>
+</body>
+</html>
