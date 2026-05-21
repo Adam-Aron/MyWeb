@@ -347,7 +347,7 @@
 
         // ================= 各模块业务逻辑 (与之前相同，直接复用) =================
         function refreshInspiration() {
-            fetch('https://v1.hitokoto.cn/?c=d&c=h')
+            fetch('https://v1.hitokoto.cn/?c=a&c=b&c=c')
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById("daily-quote").innerText = `“${data.hitokoto}”`;
