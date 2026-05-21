@@ -3,104 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我们的秘密基地</title>
+    <title>我们的秘密基地 Dashboard</title>
     <style>
-        /* 极简居中卡片样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #f4f6f9;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
-        .card {
+        /* 登录卡片 */
+        .login-container {
             background: white;
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             text-align: center;
             max-width: 400px;
-            width: 85%;
+            width: 100%;
         }
-        input {
-            width: 80%;
-            padding: 12px;
-            margin: 20px 0 10px 0;
+        /* 主工作台布局：解锁后切换为网格 */
+        #main-dashboard {
+            display: none; 
+            width: 100%;
+            max-width: 1200px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+        /* 通用卡片组件 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            height: 350px; /* 固定高度，让布局更整齐 */
+        }
+        .card-title {
+            margin-top: 0;
+            font-size: 18px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .card-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        /* 统一输入框与按钮样式 */
+        input[type="password"], input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            box-sizing: border-box;
+            font-size: 14px;
             outline: none;
         }
+        textarea { resize: none; height: 100%; }
         button {
             background-color: #007aff;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background 0.2s;
+            font-size: 14px;
         }
         button:hover { background-color: #0051cb; }
-        #main-content { display: none; } /* 默认隐藏真实内容 */
+        .flex-row { display: flex; gap: 8px; }
+        
+        /* 留言与聊天特殊样式 */
+        .msg-item { background: #f8f9fa; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+        .chat-bubble { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; max-width: 80%; font-size: 14px; }
+        .chat-user { background: #e3f2fd; align-self: flex-end; margin-left: auto; }
+        .chat-ai { background: #f1f3f4; align-self: flex-start; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 密码锁界面 -->
-    <div id="login-card" class="card">
+    <!-- ================= 1. 密码锁界面 ================= -->
+    <div id="login-page" class="login-container">
         <h2>🔒 专属私密空间</h2>
-        <p style="color: #666; font-size: 14px;">输入我们约定好的暗号才能进入哦</p>
-        <input type="password" id="password-input" placeholder="输入密码...">
+        <p style="color: #666; font-size: 14px;">输入我们约定好的暗号才能进入</p>
+        <input type="password" id="password-input" placeholder="输入密码..." style="margin-bottom: 15px;">
         <br>
-        <button onclick="checkPassword()">解锁进入</button>
-        <p id="error-msg" style="color: #ff3b30; font-size: 14px; display: none; margin-top: 10px;">暗号不对，再想想？</p>
+        <button onclick="checkPassword()" style="width: 100%;">解锁进入</button>
+        <p id="error-msg" style="color: #ff3b30; font-size: 14px; display: none; margin-top: 10px;">暗号不对哦，再想想？</p>
     </div>
 
-    <!-- 2. 网页真实内容（解锁后显示） -->
-    <div id="main-content" class="card">
-        <h2>🎉 欢迎来到秘密基地！</h2>
-        <p style="color: #444; line-height: 1.6;">这里目前只有你和你身边的人能看到。你可以在这里添加文字、图片，或者后续开发更复杂的功能。</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <button onclick="logout()" style="background-color: #8e8e93;">退出登录</button>
+    <!-- ================= 2. 网页真实工作台 ================= -->
+    <div id="main-dashboard">
+        
+        <!-- 卡片 0：每日灵感（影视/书籍+随机剧情） -->
+        <div class="card" style="grid-column: span 1; background: linear-gradient(135deg, #fff5f5, #fff);">
+            <h3 class="card-title">🎬 每日灵感激发</h3>
+            <div class="card-content">
+                <p style="font-weight: bold; color: #333;">📖 今日文学/影视金句：</p>
+                <blockquote id="daily-quote" style="font-style: italic; color: #555; margin: 10px 0; padding-left: 10px; border-left: 3px solid #ff4d4f;">
+                    正在同步文库数据...
+                </blockquote>
+                <p id="daily-from" style="text-align: right; font-size: 12px; color: #888;"></p>
+                
+                <p style="font-weight: bold; color: #333; margin-top: 20px;">🎲 随机推演剧情：</p>
+                <p id="daily-plot" style="font-size: 14px; color: #666; line-height: 1.5;">
+                    加载神秘剧情碎片中...
+                </p>
+            </div>
+            <button onclick="refreshInspiration()" style="background-color: #ff4d4f;">手动刷新灵感</button>
+        </div>
+
+        <!-- 卡片 1: 记事板（自动保存） -->
+        <div class="card">
+            <h3 class="card-title">📌 共享记事板</h3>
+            <div class="card-content">
+                <textarea id="notepad" placeholder="在这里写下随手记的内容，无需保存，关闭网页也不会丢..." oninput="saveNote()"></textarea>
+            </div>
+            <p style="font-size: 11px; color: #999; margin: 0;">* 此时的数据保存在本地浏览器中</p>
+        </div>
+
+        <!-- 卡片 2: 留言板 -->
+        <div class="card">
+            <h3 class="card-title">💬 圈子留言板</h3>
+            <div class="card-content" id="board-content">
+                <!-- 留言内容会注入到这里 -->
+            </div>
+            <div class="flex-row">
+                <input type="text" id="board-input" placeholder="说点什么吧...">
+                <button onclick="addMessage()">留言</button>
+            </div>
+        </div>
+
+        <!-- 卡片 3: AI 对话框 -->
+        <div class="card">
+            <h3 class="card-title">🤖 智能对话助手</h3>
+            <div class="card-content" id="chat-content" style="display: flex; flex-direction: column;">
+                <div class="chat-bubble chat-ai">你好！我是你的专属 AI 助手。今天看到了上方的剧情和金句，你有什么想法吗？</div>
+            </div>
+            <div class="flex-row">
+                <input type="text" id="chat-input" placeholder="输入你想问 AI 的问题..." onkeydown="if(event.keyCode==13)sendChat()">
+                <button onclick="sendChat()">发送</button>
+            </div>
+        </div>
+
+        <!-- 全局控制按钮：登出 -->
+        <div style="grid-column: 1 / -1; text-align: center; margin-top: 20px;">
+            <button onclick="logout()" style="background-color: #8e8e93;">锁上大门并退出</button>
+        </div>
     </div>
 
+    <!-- ================= 3. 核心逻辑 JavaScript ================= -->
     <script>
-        // 在这里修改你的网页密码（提示：前端明文密码属于“防君子不防小人”，但对付小圈子绰绰有余）
         const MY_SECRET_PASSWORD = "open_sesame_2026"; 
 
-        // 页面一加载，先检查之前有没有成功登录过
+        // 预设的一些随机剧情情节（模拟爬虫效果）
+        const mockPlots = [
+            "一个深夜，你房间里的老式收音机突然在没有插电的情况下，传出了你十年前好朋友的声音……",
+            "所有人都在这一天失去了近5年的记忆，除了正在看着手机的你们几个人。",
+            "你收到一封来自未来的匿名邮件，里面只有一张你们几人明天在咖啡厅聚会的合影，但照片背景里有一个巨大的倒计时屏幕。",
+            "科学家发现地球重力正在以每天 0.1% 的速度减弱，人们开始轻微地漂浮起来……"
+        ];
+
         window.onload = function() {
             if (sessionStorage.getItem("isLoggedIn") === "true") {
-                showContent();
+                enterDashboard();
             }
         }
 
-        // 验证密码
         function checkPassword() {
             const input = document.getElementById("password-input").value;
-            const errorMsg = document.getElementById("error-msg");
-
             if (input === MY_SECRET_PASSWORD) {
-                sessionStorage.setItem("isLoggedIn", "true"); // 记录登录状态
-                showContent();
+                sessionStorage.setItem("isLoggedIn", "true");
+                enterDashboard();
             } else {
-                errorMsg.style.display = "block"; // 显示错误提示
+                document.getElementById("error-msg").style.display = "block";
             }
         }
 
-        // 切换显示状态
-        function showContent() {
-            document.getElementById("login-card").style.display = "none";
-            document.getElementById("main-content").style.display = "block";
+        function enterDashboard() {
+            document.getElementById("login-page").style.display = "none";
+            // 切换为网格布局
+            const dashboard = document.getElementById("main-dashboard");
+            dashboard.style.display = "grid";
+            document.body.style.alignItems = "start"; // 顶部对齐更美观
+            
+            // 初始化各个功能组件
+            initNotepad();
+            initMessageBoard();
+            refreshInspiration(); 
         }
 
-        // 退出登录
+        // --- 功能 0: 每日灵感 (对接真实一言API + 随机剧情) ---
+        function refreshInspiration() {
+            // 使用公共免签的 Hitokoto(一言) API 模拟抓取书籍/影视剧金句
+            fetch('https://v1.hitokoto.cn/?c=d&c=h') // c=d 是文学，c=h 是影视
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("daily-quote").innerText = `“${data.hitokoto}”`;
+                    document.getElementById("daily-from").innerText = `—— 出自 《${data.from}》`;
+                })
+                .catch(() => {
+                    document.getElementById("daily-quote").innerText = "“生活不是你活过的样子，而是你记住的样子。”";
+                    document.getElementById("daily-from").innerText = "—— 出自 《百年孤独》";
+                });
+
+            // 随机抽取一个剧情
+            const randomPlot = mockPlots[Math.floor(Math.random() * mockPlots.length)];
+            document.getElementById("daily-plot").innerText = randomPlot;
+        }
+
+        // --- 功能 1: 记事板逻辑 ---
+        function initNotepad() {
+            const savedNote = localStorage.getItem("my_local_note") || "";
+            document.getElementById("notepad").value = savedNote;
+        }
+        function saveNote() {
+            const text = document.getElementById("notepad").value;
+            localStorage.setItem("my_local_note", text);
+        }
+
+        // --- 功能 2: 留言板逻辑 ---
+        function initMessageBoard() {
+            const board = document.getElementById("board-content");
+            const msgs = JSON.parse(localStorage.getItem("my_local_msgs")) || ["欢迎来到留言板！", "写点什么留给下一次的自己吧。"];
+            board.innerHTML = "";
+            msgs.forEach(m => {
+                const div = document.createElement("div");
+                div.className = "msg-item";
+                div.innerText = m;
+                board.appendChild(div);
+            });
+            board.scrollTop = board.scrollHeight;
+        }
+        function addMessage() {
+            const input = document.getElementById("board-input");
+            if(!input.value.trim()) return;
+            const msgs = JSON.parse(localStorage.getItem("my_local_msgs")) || ["欢迎来到留言板！", "写点什么留给下一次的自己吧。"];
+            msgs.push(input.value);
+            localStorage.setItem("my_local_msgs", JSON.stringify(msgs));
+            input.value = "";
+            initMessageBoard();
+        }
+
+        // --- 功能 3: AI 对话框逻辑 (预留接入端) ---
+        function sendChat() {
+            const input = document.getElementById("chat-input");
+            const chatContent = document.getElementById("chat-content");
+            if (!input.value.trim()) return;
+
+            // 1. 插入用户的消息
+            const userDiv = document.createElement("div");
+            userDiv.className = "chat-bubble chat-user";
+            userDiv.innerText = input.value;
+            chatContent.appendChild(userDiv);
+            
+            const userMsg = input.value; // 暂存用户输入
+            input.value = "";
+            chatContent.scrollTop = chatContent.scrollHeight;
+
+            // 2. 模拟 AI 响应（后续可接入大模型 API）
+            setTimeout(() => {
+                const aiDiv = document.createElement("div");
+                aiDiv.className = "chat-bubble chat-ai";
+                aiDiv.innerHTML = `⚙️ <strong>[前端预览状态]</strong><br>收到你的话：“${userMsg}”。当前处于纯前端环境，真正的 AI 接口需要配置安全的云端服务器函数（Serverless）来调用，防止密钥泄露。我们下一步可以接入它！`;
+                chatContent.appendChild(aiDiv);
+                chatContent.scrollTop = chatContent.scrollHeight;
+            }, 800);
+        }
+
         function logout() {
             sessionStorage.removeItem("isLoggedIn");
-            window.location.reload(); // 刷新页面重新上锁
+            window.location.reload();
         }
     </script>
 </body>
