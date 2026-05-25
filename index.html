@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的秘密基地 Pro</title>
+    <style>
+        /* CSS 变量，方便统一改颜色 */
+        :root {
+            --primary: #007aff;
+            --bg-color: #f5f5f7;
+            --sidebar-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --border-color: #e5e5ea;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; /* 整体不可滚动，只允许内容区滚动 */
+            color: var(--text-main);
+        }
+
+        /* ================= 登录界面 ================= */
+        #login-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            width: 320px;
+        }
+        .login-card input {
+            width: 90%;
+            padding: 12px;
+            margin: 20px 0 10px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* ================= 主应用布局 (Flexbox) ================= */
+        #app-layout {
+            display: none; /* 登录前隐藏 */
+            height: 100vh;
+            display: flex; /* 使用 flex 布局划分为左、中、右 */
+        }
+
+        /* --- 左侧边栏 --- */
+        #left-sidebar {
+            width: 220px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        #left-sidebar.collapsed {
+            width: 0; /* 收起状态 */
+            border-right: none;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 10px;
+            margin: 0;
+            flex: 1;
+        }
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .nav-item:hover { background-color: var(--bg-color); color: var(--text-main); }
+        .nav-item.active { background-color: #e3f2fd; color: var(--primary); font-weight: bold; }
+
+        /* --- 中间主画布 --- */
+        #main-workspace {
+            flex: 1; /* 占据剩余全部空间 */
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            position: relative;
+        }
+        /* 顶部控制栏 */
+        .top-bar {
+            height: 60px;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            margin-right: 15px;
+        }
+        /* 视图内容区 */
+        .view-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        /* 独立的功能面板（默认全隐藏，通过 JS 切换显示） */
+        .panel { display: none; max-width: 800px; margin: 0 auto; }
+        .panel.active { display: block; }
+        
+        .panel-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+
+        /* --- 右侧边栏 --- */
+        #right-sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-widget {
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* ================= 基础控件样式 ================= */
+        textarea, input[type="text"] {
+            width: 100%; box-sizing: border-box; padding: 12px;
+            border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px;
+        }
+        button.action-btn {
+            background-color: var(--primary); color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+        }
+        .msg-bubble { background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 登录页 -->
+    <div id="login-page">
+        <div class="login-card">
+            <h2>🔒 私密空间</h2>
+            <p style="color: #666; font-size: 14px;">输入暗号进入</p>
+            <input type="password" id="password-input" placeholder="输入密码...">
+            <button onclick="checkPassword()">解锁进入</button>
+            <p id="error-msg" style="color: #ff3b30; font-size: 14px; display: none;">暗号不对哦</p>
+        </div>
+    </div>
+
+    <!-- 2. 主应用界面 -->
+    <div id="app-layout">
+        
+        <!-- 左侧边栏：功能导航 -->
+        <aside id="left-sidebar">
+            <div class="sidebar-header">🌌 秘密基地</div>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchTab('view-inspiration', this)">🎬 每日灵感</li>
+                <li class="nav-item" onclick="switchTab('view-notepad', this)">📌 共享记事板</li>
+                <li class="nav-item" onclick="switchTab('view-board', this)">💬 圈子留言板</li>
+                <li class="nav-item" onclick="switchTab('view-chat', this)">🤖 智能对话框</li>
+            </ul>
+        </aside>
+
+        <!-- 中间：主画布 -->
+        <main id="main-workspace">
+            <div class="top-bar">
+                <!-- 侧边栏收缩按钮 -->
+                <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+                <h3 id="top-title" style="margin: 0; font-size: 16px;">🎬 每日灵感</h3>
+            </div>
+            
+            <div class="view-content">
+                <!-- 面板 1：每日灵感 -->
+                <div id="view-inspiration" class="panel active">
+                    <div class="panel-card">
+                        <h3>📖 今日文学/影视金句</h3>
+                        <blockquote id="daily-quote" style="border-left: 4px solid var(--primary); padding-left: 15px; color: #555;">正在抓取数据...</blockquote>
+                        <p id="daily-from" style="text-align: right; font-size: 12px; color: #888;"></p>
+                    </div>
+                    <div class="panel-card">
+                        <h3>🎲 随机推演剧情</h3>
+                        <p id="daily-plot" style="color: #444; line-height: 1.6;">加载剧情中...</p>
+                        <button class="action-btn" onclick="refreshInspiration()">换一个灵感</button>
+                    </div>
+                </div>
+
+                <!-- 面板 2：共享记事板 -->
+                <div id="view-notepad" class="panel">
+                    <div class="panel-card">
+                        <h3>📝 随手记</h3>
+                        <textarea id="notepad" rows="15" placeholder="写下你们的想法... (当前仅本地保存)" oninput="saveNote()"></textarea>
+                    </div>
+                </div>
+
+                <!-- 面板 3：留言板 -->
+                <div id="view-board" class="panel">
+                    <div class="panel-card" style="display: flex; flex-direction: column; height: 60vh;">
+                        <div id="board-content" style="flex: 1; overflow-y: auto; margin-bottom: 15px;">
+                            <!-- 留言气泡插入区 -->
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="board-input" placeholder="输入留言..." style="margin: 0;">
+                            <button class="action-btn" onclick="addMessage()">发送</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 面板 4：AI 聊天 -->
+                <div id="view-chat" class="panel">
+                    <div class="panel-card" style="display: flex; flex-direction: column; height: 60vh;">
+                        <div id="chat-content" style="flex: 1; overflow-y: auto; margin-bottom: 15px;">
+                            <div class="msg-bubble" style="background: #e3f2fd; width: fit-content;">🤖 AI：你好，我是基地的智能助手，有什么可以帮你们？</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="chat-input" placeholder="跟 AI 聊点什么..." style="margin: 0;" onkeydown="if(event.keyCode==13)sendChat()">
+                            <button class="action-btn" onclick="sendChat()">发送</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 右侧边栏：预留进阶功能 -->
+        <aside id="right-sidebar">
+            <h4 style="margin-top: 0;">🛠️ 进阶功能区</h4>
+            <div class="right-widget">
+                <strong>🟢 在线成员 (预留)</strong>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">功能未接入数据库，目前只能看到你自己。</p>
+            </div>
+            <div class="right-widget">
+                <strong>🔔 基地通知</strong>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">欢迎来到 V2.0 版本，全新布局已上线！</p>
+            </div>
+            <div style="margin-top: auto;">
+                <button onclick="logout()" style="width: 100%; padding: 10px; background: #ff3b30; color: white; border: none; border-radius: 8px; cursor: pointer;">退出登录</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        const MY_SECRET_PASSWORD = "xmy_is_dog"; 
+        const mockPlots = [
+            "一个深夜，你房间里的老式收音机突然在没有插电的情况下，传出了你十年前好朋友的声音……",
+            "所有人都在这一天失去了近5年的记忆，除了正在看着手机的你们几个人。",
+            "你收到一封来自未来的匿名邮件，里面只有一张你们几人明天在咖啡厅聚会的合影，但照片背景里有一个巨大的倒计时屏幕。"
+        ];
+
+        window.onload = function() {
+            if (sessionStorage.getItem("isLoggedIn") === "true") {
+                enterApp();
+            }
+        };
+
+        function checkPassword() {
+            if (document.getElementById("password-input").value === MY_SECRET_PASSWORD) {
+                sessionStorage.setItem("isLoggedIn", "true");
+                enterApp();
+            } else {
+                document.getElementById("error-msg").style.display = "block";
+            }
+        }
+
+        function enterApp() {
+            document.getElementById("login-page").style.display = "none";
+            document.getElementById("app-layout").style.display = "flex"; // 恢复为 flex，因为在 css 中 app-layout 初始是 none，为了避免冲突我们内联设置。注意：上面 css 里的显示逻辑被 JS 覆盖。
+            
+            // 初始化数据
+            refreshInspiration();
+            initNotepad();
+            initMessageBoard();
+        }
+
+        // ================= 核心控制逻辑 =================
+
+        // 1. 侧边栏收缩
+        function toggleSidebar() {
+            document.getElementById("left-sidebar").classList.toggle("collapsed");
+        }
+
+        // 2. 切换功能面板 (Tab Routing)
+        function switchTab(targetPanelId, menuItem) {
+            // 隐藏所有面板
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            // 移除所有导航项的高亮
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 显示目标面板，高亮当前导航
+            document.getElementById(targetPanelId).classList.add('active');
+            menuItem.classList.add('active');
+            
+            // 更新顶部标题
+            document.getElementById("top-title").innerText = menuItem.innerText;
+        }
+
+        function logout() {
+            sessionStorage.removeItem("isLoggedIn");
+            window.location.reload();
+        }
+
+        // ================= 各模块业务逻辑 (与之前相同，直接复用) =================
+        function refreshInspiration() {
+            fetch('https://v1.hitokoto.cn/?c=a&c=b&c=c')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById("daily-quote").innerText = `“${data.hitokoto}”`;
+                    document.getElementById("daily-from").innerText = `—— 《${data.from}》`;
+                }).catch(() => {
+                    document.getElementById("daily-quote").innerText = "“生活不是你活过的样子，而是你记住的样子。”";
+                    document.getElementById("daily-from").innerText = "—— 《百年孤独》";
+                });
+            document.getElementById("daily-plot").innerText = mockPlots[Math.floor(Math.random() * mockPlots.length)];
+        }
+
+        function initNotepad() {
+            document.getElementById("notepad").value = localStorage.getItem("my_local_note") || "";
+        }
+        function saveNote() {
+            localStorage.setItem("my_local_note", document.getElementById("notepad").value);
+        }
+
+        function initMessageBoard() {
+            const board = document.getElementById("board-content");
+            const msgs = JSON.parse(localStorage.getItem("my_local_msgs")) || ["欢迎来到留言板！"];
+            board.innerHTML = "";
+            msgs.forEach(m => {
+                const div = document.createElement("div"); div.className = "msg-bubble"; div.innerText = m;
+                board.appendChild(div);
+            });
+            board.scrollTop = board.scrollHeight;
+        }
+        function addMessage() {
+            const input = document.getElementById("board-input");
+            if(!input.value.trim()) return;
+            const msgs = JSON.parse(localStorage.getItem("my_local_msgs")) || [];
+            msgs.push(input.value);
+            localStorage.setItem("my_local_msgs", JSON.stringify(msgs));
+            input.value = "";
+            initMessageBoard();
+        }
+
+        function sendChat() {
+            const input = document.getElementById("chat-input");
+            if (!input.value.trim()) return;
+            const chatContent = document.getElementById("chat-content");
+            
+            const userDiv = document.createElement("div"); userDiv.className = "msg-bubble"; 
+            userDiv.style.cssText = "background: white; border: 1px solid #ddd; width: fit-content; align-self: flex-end; margin-left: auto;";
+            userDiv.innerText = input.value;
+            chatContent.appendChild(userDiv);
+            
+            input.value = "";
+            chatContent.scrollTop = chatContent.scrollHeight;
+
+            setTimeout(() => {
+                const aiDiv = document.createElement("div"); aiDiv.className = "msg-bubble"; 
+                aiDiv.style.cssText = "background: #e3f2fd; width: fit-content;";
+                aiDiv.innerHTML = "🔧 <strong>[系统提示]</strong>: 漂亮的新 UI！下一步我们将接入云端 API，让我真正活过来。";
+                chatContent.appendChild(aiDiv);
+                chatContent.scrollTop = chatContent.scrollHeight;
+            }, 600);
+        }
+    </script>
+</body>
+</html>

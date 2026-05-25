@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秘密基地 Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ==================== Login Page ==================== -->
+  <div id="login-page">
+    <div class="login-card">
+      <h2>🌌 秘密基地</h2>
+      <p class="login-sub">创建你的身份，进入私密协作空间</p>
+
+      <div class="login-field">
+        <label>选择头像</label>
+        <div class="avatar-picker" id="avatar-picker"></div>
+      </div>
+
+      <div class="login-field">
+        <label>选择标识色</label>
+        <div class="color-picker" id="color-picker"></div>
+      </div>
+
+      <div class="login-field">
+        <label>代号</label>
+        <input type="text" id="codename-input" placeholder="如：夜莺、孤狼…" maxlength="8">
+      </div>
+
+      <div class="login-field">
+        <label>昵称</label>
+        <input type="text" id="nickname-input" placeholder="你的日常称呼" maxlength="12">
+      </div>
+
+      <div class="login-field">
+        <label>暗号</label>
+        <input type="password" id="password-input" placeholder="输入基地密码…">
+      </div>
+
+      <button class="btn-login" onclick="doLogin()">进入基地</button>
+      <p id="login-error"></p>
+    </div>
+  </div>
+
+  <!-- ==================== App Layout ==================== -->
+  <div id="app-layout">
+
+    <!-- Left Sidebar -->
+    <aside id="left-sidebar">
+      <div class="sidebar-header">🌌 秘密基地</div>
+      <ul class="nav-menu">
+        <li class="nav-item active" onclick="switchTab('view-inspiration', this)">🎬 每日灵感</li>
+        <li class="nav-item" onclick="switchTab('view-notepad', this)">📌 共享记事板</li>
+        <li class="nav-item" onclick="switchTab('view-board', this)">💬 圈子留言板</li>
+        <li class="nav-item" onclick="switchTab('view-chat', this)">🤖 智能对话框</li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="user-mini">
+          <span class="user-avatar-small" id="sidebar-avatar" style="background:var(--primary)">👤</span>
+          <div class="user-info-mini">
+            <div class="nick" id="sidebar-nick">未登录</div>
+            <div class="code" id="sidebar-code">---</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main id="main-workspace">
+      <div class="top-bar">
+        <button class="toggle-btn" onclick="toggleSidebar()" title="收起/展开导航">☰</button>
+        <h3 class="top-title" id="top-title">🎬 每日灵感</h3>
+        <div class="spacer"></div>
+        <button class="toggle-btn" onclick="toggleRightSidebar()" title="收起/展开右侧栏" style="font-size:18px;">⚙</button>
+      </div>
+
+      <div class="view-content">
+
+        <!-- Panel: Inspiration -->
+        <div id="view-inspiration" class="panel active">
+          <div class="panel-card">
+            <h3>📖 今日金句</h3>
+            <blockquote class="inspo-quote" id="daily-quote">加载中…</blockquote>
+            <p class="inspo-from" id="daily-from"></p>
+          </div>
+          <div class="panel-card">
+            <h3>🎲 随机剧情推演</h3>
+            <p id="daily-plot" style="line-height:1.7;color:var(--text-secondary);">加载中…</p>
+            <button class="btn-action" onclick="refreshInspiration()" style="margin-top:10px;">换一个灵感</button>
+          </div>
+        </div>
+
+        <!-- Panel: Shared Notepad -->
+        <div id="view-notepad" class="panel">
+          <div class="panel-card">
+            <h3>📝 共享记事板</h3>
+            <p class="text-muted" style="margin-bottom:10px;">所有在线成员可实时协作编辑，数据自动同步</p>
+            <textarea id="notepad" rows="16" placeholder="写下你们共同的想法…&#10;所有在线成员都能看到并编辑此记事板。" oninput="saveNote()"></textarea>
+            <p class="notepad-status" id="notepad-status"></p>
+          </div>
+        </div>
+
+        <!-- Panel: Message Board -->
+        <div id="view-board" class="panel">
+          <div class="panel-card">
+            <h3>💬 圈子留言板</h3>
+            <p class="text-muted" style="margin-bottom:12px;">公开留言，所有成员可见，带上你的身份标识</p>
+            <div class="board-container">
+              <div class="board-messages" id="board-content"></div>
+              <div class="board-input-row">
+                <input type="text" id="board-input" placeholder="写下留言…（回车发送）">
+                <button class="btn-action" onclick="addMessage()">发送</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Smart Chat -->
+        <div id="view-chat" class="panel">
+          <div class="panel-card">
+            <h3>🤖 智能对话框</h3>
+            <p class="text-muted" style="margin-bottom:12px;">成员间实时交流，可随时切换 AI 参与对话</p>
+            <div class="chat-container">
+              <div class="chat-messages" id="chat-content">
+                <div class="msg-bubble msg-ai">
+                  <div class="msg-sender">
+                    <span class="msg-sender-avatar" style="background:#5856d6">🤖</span>
+                    <span class="msg-sender-name">AI助手</span>
+                  </div>
+                  <div>欢迎来到秘密基地！我是这里的 AI 助手。开启 AI 开关后，我会参与你们的对话~</div>
+                </div>
+              </div>
+              <div class="chat-input-row">
+                <div class="ai-toggle" onclick="toggleAI()">
+                  <div class="toggle-switch" id="ai-switch"></div>
+                  <span>AI 已关闭</span>
+                </div>
+                <input type="text" id="chat-input" placeholder="输入消息…（回车发送）">
+                <button class="btn-action" onclick="sendChat()">发送</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside id="right-sidebar">
+      <div class="right-section-title">🟢 在线成员</div>
+      <p style="font-size:12px;color:var(--text-tertiary);margin:-6px 0 10px 0;">
+        共 <span id="online-count">0</span> 人在线
+      </p>
+      <ul class="online-users" id="online-list">
+        <li class="online-user-item" style="color:var(--text-tertiary);">加载中…</li>
+      </ul>
+
+      <div class="notification-card">
+        <strong>🔔 基地公告</strong><br>
+        全新 V2.0 已上线！支持多人实时协作，每条消息都带有身份标识。AI 助手也已待命。
+      </div>
+
+      <div class="right-actions">
+        <button class="btn-right danger" onclick="logout()">退出基地</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Socket.IO & App -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
